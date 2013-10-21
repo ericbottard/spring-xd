@@ -48,6 +48,7 @@ import org.springframework.xd.dirt.module.NoSuchModuleException;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
+import org.springframework.xd.rest.client.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
 
 /**
@@ -56,7 +57,7 @@ import org.springframework.xd.rest.client.domain.ModuleDefinitionResource;
  * @author Glenn Renfro
  * @author Mark Fisher
  * @author Gunnar Hillert
- * @since 1.0
+ * @author Eric Bottard
  */
 @Controller
 @RequestMapping("/modules")
@@ -70,6 +71,8 @@ public class ModulesController {
 	private final XDStreamParser parser;
 
 	private ModuleDefinitionResourceAssembler moduleDefinitionResourceAssembler = new ModuleDefinitionResourceAssembler();
+
+	private final DetailedModuleDefinitionResourceAssembler detailedAssembler = new DetailedModuleDefinitionResourceAssembler();
 
 	@Autowired
 	public ModulesController(ModuleDefinitionRepository moduleDefinitionRepository) {
@@ -90,6 +93,18 @@ public class ModulesController {
 		Page<ModuleDefinition> page = repository.findByType(pageable, type);
 		PagedResources<ModuleDefinitionResource> result = safePagedResources(assembler, page);
 		return result;
+	}
+
+	/**
+	 * Retrieve detailed module definition about a particular module.
+	 */
+	@RequestMapping(value = "/{type}/{name}", method = RequestMethod.GET)
+	@ResponseStatus(HttpStatus.OK)
+	@ResponseBody
+	public DetailedModuleDefinitionResource info(@PathVariable("type") ModuleType type,
+			@PathVariable("name") String name) {
+		ModuleDefinition def = repository.findByNameAndType(name, type);
+		return detailedAssembler.toResource(def);
 	}
 
 	private PagedResources<ModuleDefinitionResource> safePagedResources(
@@ -159,7 +174,7 @@ public class ModulesController {
 	@RequestMapping(value = "/{type}/{name}/definition", method = RequestMethod.GET, produces = MediaType.APPLICATION_XML_VALUE)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public Resource display(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
+	public Resource downloadDefinition(@PathVariable("type") ModuleType type, @PathVariable("name") String name) {
 
 		final ModuleDefinition definition = this.repository.findByNameAndType(name, type);
 
