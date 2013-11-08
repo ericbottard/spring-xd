@@ -145,7 +145,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	public void testDisplayConfigurationFile() throws InterruptedException {
 
 		final CommandResult commandResult = getShell().executeCommand(
-				String.format("module display file --type source"));
+				String.format("module display source:file"));
 
 		assertTrue("The status of the command result should be successfuly", commandResult.isSuccess());
 		assertNotNull("The configurationFile should not be null.", commandResult.getResult());
@@ -163,7 +163,7 @@ public class ModuleCommandTests extends AbstractStreamIntegrationTest {
 	@Test
 	public void testDisplayNonExistingConfigurationFile() throws InterruptedException {
 		final CommandResult commandResult = getShell().executeCommand(
-				String.format("module display blubbadoesnotexist --type source"));
+				String.format("module display source:blubbadoesnotexist"));
 		assertFalse("The status of the command result should be successful", commandResult.isSuccess());
 		assertNotNull("We should get an exception returned.", commandResult.getException());
 		assertEquals("Could not find module with name 'blubbadoesnotexist' and type 'source'\n",
