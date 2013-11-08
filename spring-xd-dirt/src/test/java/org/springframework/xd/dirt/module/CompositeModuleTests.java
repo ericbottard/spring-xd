@@ -24,6 +24,7 @@ import static org.springframework.xd.module.ModuleType.source;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Before;
@@ -40,6 +41,7 @@ import org.springframework.xd.module.DeploymentMetadata;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.options.AbsentModuleOptions;
 
 /**
  * @author Mark Fisher
@@ -83,7 +85,7 @@ public class CompositeModuleTests {
 		modules.add(new SimpleModule(processor1Definition, metadata));
 		modules.add(new SimpleModule(processor2Definition, metadata));
 		CompositeModule module = new CompositeModule("compositeprocessor", ModuleType.processor, modules, metadata);
-		module.initialize();
+		module.initialize(AbsentModuleOptions.INSTANCE.interpolate(new Properties()));
 		module.start();
 		assertEquals(processor, module.getType());
 		MessageChannel input = module.getComponent("input", MessageChannel.class);

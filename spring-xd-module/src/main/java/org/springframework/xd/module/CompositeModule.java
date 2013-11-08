@@ -37,6 +37,7 @@ import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.handler.BridgeHandler;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.util.Assert;
+import org.springframework.xd.module.options.InterpolatedModuleOptions;
 
 /**
  * @author Mark Fisher
@@ -88,12 +89,12 @@ public class CompositeModule extends AbstractModule {
 	}
 
 	@Override
-	public void initialize() {
+	public void initialize(InterpolatedModuleOptions moduleOptions) {
 		List<AbstractEndpoint> endpoints = new ArrayList<AbstractEndpoint>();
 		MessageChannel previousOutputChannel = null;
 		for (int i = 0; i < this.modules.size(); i++) {
 			SimpleModule module = this.modules.get(i);
-			module.initialize();
+			module.initialize(moduleOptions);
 			MessageChannel inputChannel = module.getComponent("input", MessageChannel.class);
 			MessageChannel outputChannel = module.getComponent("output", MessageChannel.class);
 			if (i == 0 && inputChannel != null) {

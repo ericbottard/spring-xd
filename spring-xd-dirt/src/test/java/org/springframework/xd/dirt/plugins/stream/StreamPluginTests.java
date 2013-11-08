@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,6 +46,7 @@ import org.springframework.xd.module.Module;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.options.AbsentModuleOptions;
 
 /**
  * @author Mark Fisher
@@ -68,7 +70,7 @@ public class StreamPluginTests {
 	public void streamPropertiesAdded() {
 		Module module = new SimpleModule(new ModuleDefinition("testsource", ModuleType.source),
 				new DeploymentMetadata("foo", 0));
-		module.initialize();
+		module.initialize(AbsentModuleOptions.INSTANCE.interpolate(new Properties()));
 		assertEquals(0, module.getProperties().size());
 		plugin.preProcessModule(module);
 		plugin.postProcessModule(module);

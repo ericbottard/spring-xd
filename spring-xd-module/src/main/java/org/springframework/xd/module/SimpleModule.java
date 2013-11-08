@@ -34,6 +34,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.xd.module.options.InterpolatedModuleOptions;
 
 /**
  * A {@link Module} implementation backed by a Spring {@link ApplicationContext}.
@@ -67,14 +68,6 @@ public class SimpleModule extends AbstractModule {
 		environment = new StandardEnvironment();
 		if (classLoader != null) {
 			application.resourceLoader(new PathMatchingResourcePatternResolver(classLoader));
-		}
-		if (definition != null) {
-			if (definition.getResource().isReadable()) {
-				this.addComponents(definition.getResource());
-			}
-			if (definition.getProperties() != null) {
-				this.addProperties(definition.getProperties());
-			}
 		}
 	}
 
@@ -129,8 +122,21 @@ public class SimpleModule extends AbstractModule {
 	}
 
 	@Override
-	public void initialize() {
+	public void initialize(InterpolatedModuleOptions moduleOptions) {
 		this.application.initializers(new ContextIdApplicationContextInitializer(this.toString()));
+
+		String[] profilesToActivate = moduleOptions.profilesToActivate();
+		for (String profile : profilesToActivate) {
+			environment.addActiveProfile(profile);
+		}
+
+		if (getDefinition() != null) {
+			if (getDefinition().getResource().isReadable()) {
+				this.addComponents(getDefinition().getResource());
+			}
+		}
+
+
 		this.application.environment(environment);
 		this.context = this.application.run();
 		if (logger.isInfoEnabled()) {

@@ -21,6 +21,7 @@ import java.util.Properties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.Lifecycle;
 import org.springframework.core.io.Resource;
+import org.springframework.xd.module.options.InterpolatedModuleOptions;
 
 /**
  * @author Mark Fisher
@@ -29,7 +30,7 @@ import org.springframework.core.io.Resource;
  */
 public interface Module extends Lifecycle {
 
-	void initialize();
+	void initialize(InterpolatedModuleOptions moduleOptions);
 
 	/**
 	 * @return the generic module name or template name

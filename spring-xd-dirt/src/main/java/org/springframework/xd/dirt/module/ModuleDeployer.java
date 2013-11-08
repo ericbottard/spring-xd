@@ -53,6 +53,7 @@ import org.springframework.xd.module.ModuleType;
 import org.springframework.xd.module.ParentLastURLClassLoader;
 import org.springframework.xd.module.Plugin;
 import org.springframework.xd.module.SimpleModule;
+import org.springframework.xd.module.options.InterpolatedModuleOptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -216,11 +217,16 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 	}
 
 	private void deployModule(Module module, ModuleDeploymentRequest request, Message<?> message) {
+		ModuleDefinition definition = moduleDefinitionRepository.findByNameAndType(module.getName(), module.getType());
 		module.setParentContext(this.commonContext);
-		Object properties = message.getHeaders().get("properties");
-		if (properties instanceof Properties) {
-			module.addProperties((Properties) properties);
-		}
+
+		// Commenting out as currently not used and trying to reduce usage of addProperties
+		// Object properties = message.getHeaders().get("properties");
+		// if (properties instanceof Properties) {
+		// module.addProperties((Properties) properties);
+		// }
+
+
 		Map<String, String> parameters = request.getParameters();
 		Properties parametersAsProps = new Properties();
 		if (!CollectionUtils.isEmpty(parameters)) {
@@ -228,10 +234,11 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		}
 
 
-		ModuleDefinition definition = moduleDefinitionRepository.findByNameAndType(module.getName(), module.getType());
-		EnumerablePropertySource<?> propertySource = definition.getModuleOptions().interpolate(
-				parametersAsProps).asPropertySource();
+		InterpolatedModuleOptions runtimeOptions = definition.getModuleOptions().interpolate(
+				parametersAsProps);
+		EnumerablePropertySource<?> propertySource = runtimeOptions.asPropertySource();
 		// Go back to the java.util.Properties world for now
+		// TODO: move this in module.initialize()
 		Properties props = new Properties();
 		for (String key : propertySource.getPropertyNames()) {
 			Object value = propertySource.getProperty(key);
@@ -242,7 +249,7 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		module.addProperties(props);
 
 
-		this.deploy(module);
+		this.deploy(module, runtimeOptions);
 
 		if (logger.isInfoEnabled()) {
 			logger.info("deployed " + module.toString());
@@ -251,9 +258,9 @@ public class ModuleDeployer extends AbstractMessageHandler implements Applicatio
 		this.deployedModules.get(request.getGroup()).put(request.getIndex(), module);
 	}
 
-	private void deploy(Module module) {
+	private void deploy(Module module, InterpolatedModuleOptions moduleOptions) {
 		this.preProcessModule(module);
-		module.initialize();
+		module.initialize(moduleOptions);
 		this.postProcessModule(module);
 		module.start();
 		this.fireModuleDeployedEvent(module);
