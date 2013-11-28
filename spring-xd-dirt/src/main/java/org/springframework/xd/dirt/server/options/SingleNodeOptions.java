@@ -19,7 +19,6 @@ package org.springframework.xd.dirt.server.options;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store;
 
 
 /**
@@ -29,7 +28,7 @@ import org.springframework.xd.dirt.server.options.CommonDistributedOptions.Store
  * @author Eric Bottard
  */
 @ConfigurationProperties
-public class SingleNodeOptions {
+public class SingleNodeOptions extends CommonOptions {
 
 	public static enum Analytics {
 		memory, redis;
@@ -56,7 +55,7 @@ public class SingleNodeOptions {
 	}
 
 	@NotNull
-	public Store getXD_STORE() {
+	public SingleNodeOptions.Store getXD_STORE() {
 		return store;
 	}
 
@@ -69,7 +68,7 @@ public class SingleNodeOptions {
 		this.analytics = analytics;
 	}
 
-	public void setXD_STORE(Store store) {
+	public void setXD_STORE(SingleNodeOptions.Store store) {
 		this.store = store;
 	}
 

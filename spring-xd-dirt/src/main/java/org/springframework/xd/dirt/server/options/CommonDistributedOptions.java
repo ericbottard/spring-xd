@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
  * 
  * @author Eric Bottard
  */
-public class CommonDistributedOptions {
+public abstract class CommonDistributedOptions extends CommonOptions {
 
 	public static enum Analytics {
 		// note: memory is NOT an option here
@@ -37,16 +37,13 @@ public class CommonDistributedOptions {
 		rabbit, redis;
 	}
 
-	// Should be pushed down to AdminOptions but currently
-	// can't b/c of the way container runtime info is persisted
-	public static enum Store {
-		memory, redis;
-	}
 
 	private Analytics analytics;
 
 	private Transport transport;
 
+	// Should be pushed down to AdminOptions but currently
+	// can't b/c of the way container runtime info is persisted
 	private Store store;
 
 	@NotNull
@@ -55,7 +52,7 @@ public class CommonDistributedOptions {
 	}
 
 	@NotNull
-	public Store getXD_STORE() {
+	public SingleNodeOptions.Store getXD_STORE() {
 		return store;
 	}
 
@@ -68,7 +65,7 @@ public class CommonDistributedOptions {
 		this.analytics = analytics;
 	}
 
-	public void setXD_STORE(Store store) {
+	public void setXD_STORE(SingleNodeOptions.Store store) {
 		this.store = store;
 	}
 
