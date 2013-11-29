@@ -887,7 +887,10 @@ project('modules') {
 // ================ A R C H I V E   M O D U L E S ======================
 project('modules2.gemfire-modules') {
 	dependencies {
-		runtime project(':spring-xd-extension-gemfire')
+		runtime (project(":spring-xd-extension-gemfire")) {
+			exclude group: 'org.slf4j'
+			exclude group: 'commons-logging'
+		}
 	}
 }
 
@@ -977,23 +980,23 @@ project('modules.source.jms') {
 	}
 }
 
-project('modules.source.gemfire') {
-	dependencies {
-		runtime (project(":spring-xd-extension-gemfire")) {
-			exclude group: 'org.slf4j'
-			exclude group: 'commons-logging'
-		}
-	}
-}
+//project('modules.source.gemfire') {
+//	dependencies {
+//		runtime (project(":spring-xd-extension-gemfire")) {
+//			exclude group: 'org.slf4j'
+//			exclude group: 'commons-logging'
+//		}
+//	}
+//}
 
-project('modules.source.gemfire-cq') {
-	dependencies {
-		runtime (project(":spring-xd-extension-gemfire")) {
-			exclude group: 'org.slf4j'
-			exclude group: 'commons-logging'
-		}
-	}
-}
+//project('modules.source.gemfire-cq') {
+//	dependencies {
+//		runtime (project(":spring-xd-extension-gemfire")) {
+//			exclude group: 'org.slf4j'
+//			exclude group: 'commons-logging'
+//		}
+//	}
+//}
 
 project('modules.source.twitterstream') {
 	dependencies {
@@ -1078,23 +1081,23 @@ project('modules.sink.mail') {
 	}
 }
 
-project('modules.sink.gemfire-json-server') {
-	dependencies {
-		runtime (project(":spring-xd-extension-gemfire")) {
-			exclude group: 'org.slf4j'
-			exclude group: 'commons-logging'
-		}
-	}
-}
+//project('modules.sink.gemfire-json-server') {
+//	dependencies {
+//		runtime (project(":spring-xd-extension-gemfire")) {
+//			exclude group: 'org.slf4j'
+//			exclude group: 'commons-logging'
+//		}
+//	}
+//}
 
-project('modules.sink.gemfire-server') {
-	dependencies {
-		runtime (project(":spring-xd-extension-gemfire")) {
-			exclude group: 'org.slf4j'
-			exclude group: 'commons-logging'
-		}
-	}
-}
+//project('modules.sink.gemfire-server') {
+//	dependencies {
+//		runtime (project(":spring-xd-extension-gemfire")) {
+//			exclude group: 'org.slf4j'
+//			exclude group: 'commons-logging'
+//		}
+//	}
+//}
 
 project('modules.sink.splunk') {
 	dependencies {
