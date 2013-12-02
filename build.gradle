@@ -305,9 +305,21 @@ configure(archiveModuleProjects()) { moduleProject ->
 	apply plugin: 'eclipse'
 	apply plugin: 'java'
 	apply plugin: "spring-boot"
+	configurations {
+		providedRuntime {
+			extendsFrom (project(':spring-xd-dirt').configurations.runtime)
+		}
+	}
+
 	springBoot {
 		layout = 'NONE'
 	}
+
+	task listJars << {
+	    configurations.providedRuntime.files.each { File file -> println file.name }
+//	    configurations.runtime.each { File file -> println file.name }
+	}
+
 }
 
 
@@ -887,12 +899,14 @@ project('modules') {
 // ================ A R C H I V E   M O D U L E S ======================
 project('modules2.gemfire-modules') {
 	dependencies {
-		runtime (project(":spring-xd-extension-gemfire")) {
+		compile (project(":spring-xd-extension-gemfire")) {
 			exclude group: 'org.slf4j'
 			exclude group: 'commons-logging'
 		}
 	}
 }
+
+
 
 // ================ M O D U L E S : S O U R C E S ======================
 

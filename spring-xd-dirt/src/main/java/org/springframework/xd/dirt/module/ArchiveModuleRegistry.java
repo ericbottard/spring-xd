@@ -17,8 +17,6 @@
 package org.springframework.xd.dirt.module;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -33,10 +31,10 @@ import org.springframework.boot.loader.archive.Archive.Entry;
 import org.springframework.boot.loader.archive.Archive.EntryFilter;
 import org.springframework.boot.loader.archive.ExplodedArchive;
 import org.springframework.boot.loader.archive.JarFileArchive;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.Assert;
-import org.springframework.util.ResourceUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleDefinition;
 import org.springframework.xd.module.ModuleType;
@@ -101,16 +99,13 @@ public class ArchiveModuleRegistry implements ModuleRegistry {
 
 	private static final int NAME_CAPTURING_GROUP = 2;
 
-	private File root;
+	private String archivesGlob;
 
-	public ArchiveModuleRegistry(File root) {
-		this.root = root;
+	private PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+
+	public ArchiveModuleRegistry(String archivesGlob) {
+		this.archivesGlob = archivesGlob;
 	}
-
-	public ArchiveModuleRegistry(URL root) throws FileNotFoundException {
-		this.root = ResourceUtils.getFile(root);
-	}
-
 
 	private URL[] classpathRootsForArchive(Archive archive) throws IOException, MalformedURLException {
 		List<Archive> nestedArchives = archive.getNestedArchives(FILTER);
@@ -183,24 +178,22 @@ public class ArchiveModuleRegistry implements ModuleRegistry {
 
 	private List<Archive> scanArchives() {
 		try {
-			File[] archivePaths = root.listFiles(new FileFilter() {
-
-				@Override
-				public boolean accept(File pathname) {
-					return !pathname.getName().equals(".") &&
-							!pathname.getName().equals("..") &&
-							(pathname.isDirectory() || pathname.getName().endsWith(".jar"));
+			Resource[] archives = resolver.getResources(archivesGlob);
+			List<Archive> result = new ArrayList<Archive>(archives.length);
+			for (Resource resource : archives) {
+				if (!resource.exists()) {
+					continue;
 				}
-			});
-			List<Archive> result = new ArrayList<>(archivePaths.length);
-			for (File file : archivePaths) {
+				FileSystemResource fsResource = (FileSystemResource) resource;
+				File file = fsResource.getFile();
 				result.add(file.isDirectory() ? new ExplodedArchive(file) : new JarFileArchive(file));
 			}
 			return result;
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException("Could not scan directory for archives", e);
+			throw new RuntimeIOException("Error trying to scan " + archivesGlob, e);
 		}
+
 	}
 
 }
