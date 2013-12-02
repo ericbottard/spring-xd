@@ -346,6 +346,7 @@ project('spring-xd-dirt') {
 		compile "org.springframework.cloud:cloudfoundry-connector:$springCloudVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
 		compile "org.springframework.boot:spring-boot-actuator:$springBootVersion"
+		compile "org.springframework.boot:spring-boot-loader:$springBootVersion"
 		compile "org.springframework.data:spring-data-redis:$springDataRedisVersion"
 		compile "org.springframework.integration:spring-integration-redis:$springIntegrationVersion"
 		compile "org.springframework.integration:spring-integration-http:$springIntegrationVersion"
@@ -826,6 +827,7 @@ project('spring-xd-module') {
 	dependencies {
 		compile "org.springframework.integration:spring-integration-core:$springIntegrationVersion"
 		compile "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion"
+		compile "org.springframework.boot:spring-boot-loader:$springBootVersion"
 		compile project(':spring-xd-module-spi')
 	}
 }
@@ -886,7 +888,7 @@ project('modules') {
 // ================ A R C H I V E   M O D U L E S ======================
 project('modules2.gemfire-modules') {
 	dependencies {
-		runtime (project(":spring-xd-extension-gemfire")) {
+		compile (project(":spring-xd-extension-gemfire")) {
 			exclude group: 'org.slf4j'
 			exclude group: 'commons-logging'
 		}

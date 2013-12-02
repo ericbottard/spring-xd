@@ -23,10 +23,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.boot.loader.LaunchedURLClassLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.core.RuntimeIOException;
 import org.springframework.xd.module.ModuleDefinition;
@@ -77,7 +79,7 @@ import org.springframework.xd.module.ModuleType;
  */
 public class ResourceModuleRegistry2 implements ModuleRegistry {
 
-	private static final String DEFAULT_DEFINITION_SUBDIRECTORY = "/spring-xd";
+	private static final String DEFAULT_DEFINITION_SUBDIRECTORY = "";
 
 	private static final int NAME_CAPTURING_GROUP = 2;
 
@@ -134,20 +136,30 @@ public class ResourceModuleRegistry2 implements ModuleRegistry {
 		Assert.isTrue(pattern.startsWith("/"), "Pattern should start with a '/' : " + pattern);
 		List<ModuleDefinition> result = new ArrayList<ModuleDefinition>();
 		try {
-			Resource[] resources = resolver.getResources(root + definitionSubdirectory + pattern);
-			for (Resource resource : resources) {
-				if (!resource.exists()) {
+			Resource[] archiveRoots = resolver.getResources(root);
+			for (Resource archive : archiveRoots) {
+				if (!archive.exists()) {
 					// PathMatchingResourcePatternResolver.getResources() may return a non-existent
 					// resource when given a pattern-less glob
 					continue;
 				}
-				String fullPath = resource.getURI().toString();
-				Matcher matcher = capturingPattern.matcher(fullPath);
-				Assert.isTrue(matcher.matches(), fullPath + " did not match " + capturingPattern);
-				ModuleType type = ModuleType.valueOf(matcher.group(TYPE_CAPTURING_GROUP));
-				String actualName = matcher.group(NAME_CAPTURING_GROUP);
-				URL[] urls = locateJarsRelativeToResource(resource);
-				result.add(new ModuleDefinition(actualName, type, resource, urls));
+				// ClassLoader cl = new URLClassLoader(new URL[] { archive.getURL() });
+				ClassLoader cl = new LaunchedURLClassLoader(new URL[] { archive.getURL() },
+						ClassUtils.getDefaultClassLoader());
+				ResourcePatternResolver resolver2 = new PathMatchingResourcePatternResolver(cl);
+				Resource[] definitions = resolver2.getResources(pattern);
+				for (Resource resource : definitions) {
+					if (!resource.exists()) {
+						continue;
+					}
+					String fullPath = resource.getURI().toString();
+					Matcher matcher = capturingPattern.matcher(fullPath);
+					Assert.isTrue(matcher.matches(), fullPath + " did not match " + capturingPattern);
+					ModuleType type = ModuleType.valueOf(matcher.group(TYPE_CAPTURING_GROUP));
+					String actualName = matcher.group(NAME_CAPTURING_GROUP);
+					URL[] urls = locateJarsRelativeToResource(archive, resolver2);
+					result.add(new ModuleDefinition(actualName, type, resource, urls));
+				}
 			}
 		}
 		catch (IOException e) {
@@ -156,18 +168,10 @@ public class ResourceModuleRegistry2 implements ModuleRegistry {
 		return result;
 	}
 
-	private URL[] locateJarsRelativeToResource(Resource resource) throws IOException {
-		StringBuilder sb = new StringBuilder(resource.getURI().toString());
-		// From .../subdir/sink/foo.xml into sink/
-		sb.setLength(sb.lastIndexOf("/") + 1);
-		// Now move up as necessary to balance definitionSubdirectory
-		int levels = StringUtils.countOccurrencesOf(definitionSubdirectory, "/");
-		for (int i = 0; i < levels; i++) {
-			sb.append("../");
-		}
-		sb.append("../lib/*.jar");
+	private URL[] locateJarsRelativeToResource(Resource resource, ResourcePatternResolver innerResolver)
+			throws IOException {
 		try {
-			Resource[] resources = resolver.getResources(sb.toString());
+			Resource[] resources = innerResolver.getResources("lib/*.jar");
 			URL[] result = new URL[resources.length];
 			for (int i = 0; i < resources.length; i++) {
 				result[i] = resources[i].getURL();
@@ -175,7 +179,7 @@ public class ResourceModuleRegistry2 implements ModuleRegistry {
 			return result;
 		}
 		catch (IOException e) {
-			throw new RuntimeIOException("Exception while trying to locate jars inside " + sb, e);
+			throw new RuntimeIOException("Exception while trying to locate jars inside " + resource, e);
 		}
 	}
 
