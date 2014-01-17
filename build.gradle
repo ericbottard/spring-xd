@@ -43,11 +43,50 @@ ext {
 class SingleNodeServerProcess {
 		 Process process
 }
+class RestDocumentationOptions extends org.gradle.external.javadoc.CoreJavadocOptions {
+    
+    public RestDocumentationOptions() {
+    	this(new org.gradle.external.javadoc.internal.JavadocOptionFile())
+    }
+
+    protected RestDocumentationOptions(org.gradle.external.javadoc.internal.JavadocOptionFile javadocOptionFile) {
+    	super(javadocOptionFile)
+
+    	destinationDirectory = addFileOption("d")
+    	header = addStringOption("header")
+    	windowTitle = addStringOption("windowtitle")
+    }
+
+	private final JavadocOptionFileOption<File> destinationDirectory;
+
+    public File getDestinationDirectory() {
+        return destinationDirectory.getValue();
+    }
+
+    public void setDestinationDirectory(File directory) {
+        this.destinationDirectory.setValue(directory);
+    }
+
+    public RestDocumentationOptions destinationDirectory(File destinationDirectory) {
+        setDestinationDirectory(destinationDirectory);
+        return null;
+    }
+
+	String getHeader() {return null}
+	void setHeader(java.lang.String h) {}
+	StandardJavadocDocletOptions header(java.lang.String h) {return null}
+
+	String getWindowTitle() {return null}
+	void setWindowTitle(java.lang.String t) {}
+	StandardJavadocDocletOptions windowTitle(java.lang.String t) { return null}
+
+}
 
 allprojects {
 	group = 'org.springframework.xd'
 
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.spring.io/libs-milestone' }
  		maven { url 'http://repo.spring.io/libs-snapshot' }
@@ -479,6 +518,23 @@ project('spring-xd-dirt') {
 	tasks["backgroundAdminServer"].dependsOn("classes")
 	tasks["clean"].dependsOn("cleanDataDir")
 
+	configurations {
+		restDoclet
+	}
+	dependencies {
+		restDoclet "org.springframework.rest.documentation:rest-documentation-doclet:0.1.0.BUILD-SNAPSHOT"
+		runtime    "org.springframework.rest.documentation:rest-documentation-boot:0.1.0.BUILD-SNAPSHOT"
+	}
+	task generateRestApiDocs(type: Javadoc) {
+		source = sourceSets.main.allJava
+		destinationDir = sourceSets.main.output.classesDir
+		classpath = configurations.runtime
+		
+		options = new RestDocumentationOptions()
+		options.docletpath = configurations.restDoclet.files.asType(List)
+		options.doclet = "org.springframework.rest.documentation.doclet.RestDoclet"
+		
+	}
 }
 
 project('spring-xd-exec') {
