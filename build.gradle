@@ -72,7 +72,7 @@ ext {
 	snakeYamlVersion = '1.12'
 	springVersion = '4.0.0.RELEASE'
 	springBatchVersion = '3.0.0.BUILD-SNAPSHOT'
-	springIntegrationVersion = '4.0.0.M2'
+	springIntegrationVersion = '4.0.0.BUILD-SNAPSHOT'
 	springIntegrationMQTTVersion = '4.0.0.M2'
 	springBootVersion = '1.0.0.RC1'
 	springCloudVersion = '0.9.2'
@@ -117,6 +117,7 @@ def forceSpringVersion(p) {
 					details.useVersion "$springVersion"
 				}
 			}
+
 		}
 	}
 }

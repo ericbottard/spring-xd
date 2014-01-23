@@ -24,8 +24,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
 
-import org.springframework.integration.MessageHandlingException;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHandlingException;
 import org.springframework.util.Assert;
 
 /**
@@ -113,7 +113,7 @@ public class HdfsTextFileWriter extends AbstractHdfsWriter implements HdfsWriter
 				bytes = ((String) payload).getBytes(this.charset);
 			}
 			catch (UnsupportedEncodingException e) {
-				throw new MessageHandlingException(message, e);
+				throw new MessageHandlingException(message, String.format("Unsupported charset: %s", charset), e);
 			}
 		}
 		else {
