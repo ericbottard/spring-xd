@@ -90,18 +90,26 @@ public class DefaultModuleOptionsMetadataResolver implements ModuleOptionsMetada
 	private ModuleOptionsMetadataResolver compositeResolver = this;
 
 
-	public void setCompositeResolver(ModuleOptionsMetadataResolver compositeResolver) {
-		this.compositeResolver = compositeResolver;
-	}
-
 	private final DefaultModuleOptionsMetadataCollector defaultModuleOptionsMetadataCollector = new DefaultModuleOptionsMetadataCollector();
 
+	/**
+	 * Construct a new {@link DefaultModuleOptionsMetadataResolver} that will use the provided conversion service when
+	 * converting from String to rich object (supported for {@link PojoModuleOptionsMetadata} only).
+	 */
 	public DefaultModuleOptionsMetadataResolver(ConversionService conversionService) {
 		this.conversionService = conversionService;
 	}
 
+	/**
+	 * Construct a new {@link DefaultModuleOptionsMetadataResolver}, using no particular conversion service for
+	 * {@link PojoModuleOptionsMetadata}.
+	 */
 	public DefaultModuleOptionsMetadataResolver() {
 		this(null);
+	}
+
+	public void setCompositeResolver(ModuleOptionsMetadataResolver compositeResolver) {
+		this.compositeResolver = compositeResolver;
 	}
 
 	private ModuleOptionsMetadata makeSimpleModuleOptions(Properties props) {

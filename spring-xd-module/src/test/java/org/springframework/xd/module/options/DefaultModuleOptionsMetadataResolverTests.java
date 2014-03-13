@@ -28,7 +28,6 @@ public class DefaultModuleOptionsMetadataResolverTests {
 				"/DefaultModuleOptionsMetadataResolverTests-modules/source/module1/config/module1.xml");
 		ModuleDefinition definition = new ModuleDefinition("module1", source, resource);
 		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
-		System.out.println(metadata);
 		assertThat(
 				metadata,
 				containsInAnyOrder(moduleOptionNamed("bar"), moduleOptionNamed("foo")));
@@ -41,10 +40,17 @@ public class DefaultModuleOptionsMetadataResolverTests {
 				"/DefaultModuleOptionsMetadataResolverTests-modules/source/module2/config/module2.xml");
 		ModuleDefinition definition = new ModuleDefinition("module2", source, resource);
 		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
-		System.out.println(metadata);
 		assertThat(
 				metadata,
 				containsInAnyOrder(moduleOptionNamed("bar"), moduleOptionNamed("fizz"), moduleOptionNamed("foo"),
 						moduleOptionNamed("optionDefinedHere")));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testMixinOverlap() {
+		Resource resource = new ClassPathResource(
+				"/DefaultModuleOptionsMetadataResolverTests-modules/source/module3/config/module3.xml");
+		ModuleDefinition definition = new ModuleDefinition("module3", source, resource);
+		ModuleOptionsMetadata metadata = metadataResolver.resolve(definition);
 	}
 }
