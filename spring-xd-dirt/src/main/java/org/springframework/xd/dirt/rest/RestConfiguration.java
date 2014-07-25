@@ -16,11 +16,10 @@ package org.springframework.xd.dirt.rest;
 
 import static org.springframework.hateoas.config.EnableHypermediaSupport.HypermediaType.HAL;
 
-import java.util.List;
-
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.HttpMessageConverters;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -28,8 +27,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.hateoas.config.EnableHypermediaSupport;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.xml.AbstractJaxb2HttpMessageConverter;
+import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -59,6 +59,27 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 public class RestConfiguration {
 
 	@Bean
+	public HttpMessageConverters httpMessageConverters() {
+		HttpMessageConverters converters = new HttpMessageConverters();
+		for (HttpMessageConverter<?> httpMessageConverter : converters) {
+			if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
+				final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
+
+				final ObjectMapper objectMapper = converter.getObjectMapper();
+				objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+				objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
+				objectMapper.addMixInAnnotations(StepExecution.class, StepExecutionJacksonMixIn.class);
+				objectMapper.addMixInAnnotations(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
+			}
+			else if (httpMessageConverter instanceof Jaxb2RootElementHttpMessageConverter) {
+				RestTemplateMessageConverterUtil.initializeJAXBContexts((AbstractJaxb2HttpMessageConverter<?>) httpMessageConverter);
+			}
+		}
+
+		return converters;
+	}
+
+	@Bean
 	public WebMvcConfigurer configurer() {
 		return new WebMvcConfigurerAdapter() {
 
@@ -68,25 +89,6 @@ public class RestConfiguration {
 
 			@Value("${xd.ui.allow_origin:http://localhost:9889}")
 			private String allowedOrigin;
-
-			@Override
-			public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-				RestTemplateMessageConverterUtil.installMessageConverters(converters);
-
-				for (HttpMessageConverter<?> httpMessageConverter : converters) {
-					if (httpMessageConverter instanceof MappingJackson2HttpMessageConverter) {
-						final MappingJackson2HttpMessageConverter converter = (MappingJackson2HttpMessageConverter) httpMessageConverter;
-
-						final ObjectMapper objectMapper = converter.getObjectMapper();
-						objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-						objectMapper.setDateFormat(new ISO8601DateFormatWithMilliSeconds());
-						objectMapper.addMixInAnnotations(StepExecution.class, StepExecutionJacksonMixIn.class);
-						objectMapper.addMixInAnnotations(ExecutionContext.class, ExecutionContextJacksonMixIn.class);
-					}
-				}
-
-				converters.add(new ResourceHttpMessageConverter());
-			}
 
 			@Override
 			public void addInterceptors(InterceptorRegistry registry) {

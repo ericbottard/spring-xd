@@ -38,7 +38,6 @@ import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.ModuleMetadataResource;
 import org.springframework.xd.rest.domain.StreamDefinitionResource;
 import org.springframework.xd.rest.domain.XDRuntime;
-import org.springframework.xd.rest.domain.StreamDefinitionResource.Page;
 import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
 import org.springframework.xd.rest.domain.metrics.CounterResource;
 import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
@@ -52,13 +51,13 @@ import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
  * <li>Resets a {@link RestTemplate}'s message converters list to have json support come <em>before</em> xml.</li>
  * <li>Force injects JAXBContexts that know about our particular classes</li>
  * </ol>
- * 
+ *
  * <p>
  * The second item is necessary when marshalling (on the server) instances of <i>e.g.</i> {@link PagedResources} because
  * of type erasure. This hack can be worked around when un-marshalling (on the client) with use of constructs like
  * {@link org.springframework.xd.rest.domain.StreamDefinitionResource.Page}.
  * </p>
- * 
+ *
  * @author Eric Bottard
  */
 public class RestTemplateMessageConverterUtil {
@@ -108,7 +107,7 @@ public class RestTemplateMessageConverterUtil {
 		return messageConverters;
 	}
 
-	private static void initializeJAXBContexts(AbstractJaxb2HttpMessageConverter<?> c) {
+	public static void initializeJAXBContexts(AbstractJaxb2HttpMessageConverter<?> c) {
 
 		// Ugliest hack ever to workaround https://jira.springsource.org/browse/SPR-10262
 		Field f = ReflectionUtils.findField(AbstractJaxb2HttpMessageConverter.class, "jaxbContexts");
