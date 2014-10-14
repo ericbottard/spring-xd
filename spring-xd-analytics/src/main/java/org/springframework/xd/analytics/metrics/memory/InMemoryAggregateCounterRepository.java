@@ -16,13 +16,8 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.xd.analytics.metrics.core.AggregateCount;
 import org.springframework.xd.analytics.metrics.core.AggregateCountResolution;
@@ -30,9 +25,13 @@ import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.store.AbstractInMemoryRepository;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * In-memory aggregate counter with minute resolution.
- *
+ * <p/>
  * Note that the data is permanently accumulated, so will grow steadily in size until the host process is restarted.
  *
  * @author Luke Taylor
@@ -40,101 +39,101 @@ import org.springframework.xd.store.AbstractInMemoryRepository;
  */
 @Qualifier("aggregate")
 public class InMemoryAggregateCounterRepository extends AbstractInMemoryRepository<Counter, String> implements
-AggregateCounterRepository {
+        AggregateCounterRepository {
 
-	private Map<String, InMemoryAggregateCounter> aggregates = new HashMap<String, InMemoryAggregateCounter>();
+    private Map<String, InMemoryAggregateCounter> aggregates = new HashMap<String, InMemoryAggregateCounter>();
 
-	@Override
-	public long increment(String name) {
-		return increment(name, 1L);
-	}
+    @Override
+    public long increment(String name) {
+        return increment(name, 1L);
+    }
 
-	@Override
-	public long increment(String name, long amount) {
-		return increment(name, amount, DateTime.now());
-	}
+    @Override
+    public long increment(String name, long amount) {
+        return increment(name, amount, DateTime.now());
+    }
 
-	@Override
-	public long increment(String name, long amount, DateTime dateTime) {
-		InMemoryAggregateCounter counter = getOrCreate(name);
-		return counter.increment(amount, dateTime);
-	}
+    @Override
+    public long decrement(String name) {
+        throw new UnsupportedOperationException("Can't decrement an AggregateCounter");
+    }
 
-	@Override
-	public AggregateCount getCounts(String name, int nCounts, AggregateCountResolution resolution) {
-		return getOrCreate(name).getCounts(nCounts, new DateTime(), resolution);
-	}
+    @Override
+    public void reset(String name) {
+        delete(name);
+    }
 
-	@Override
-	public AggregateCount getCounts(String name, Interval interval, AggregateCountResolution resolution) {
-		return getOrCreate(name).getCounts(interval, resolution);
-	}
+    @Override
+    public long increment(String name, long amount, DateTime dateTime) {
+        InMemoryAggregateCounter counter = getOrCreate(name);
+        return counter.increment(amount, dateTime);
+    }
 
-	@Override
-	public AggregateCount getCounts(String name, int nCounts, DateTime end, AggregateCountResolution resolution) {
-		return getOrCreate(name).getCounts(nCounts, end, resolution);
-	}
+    @Override
+    public AggregateCount getCounts(String name, int nCounts, AggregateCountResolution resolution) {
+        return getOrCreate(name).getCounts(nCounts, new DateTime(), resolution);
+    }
 
-	private synchronized InMemoryAggregateCounter getOrCreate(String name) {
-		InMemoryAggregateCounter c = aggregates.get(name);
-		if (c == null) {
-			c = new InMemoryAggregateCounter(name);
-			aggregates.put(name, c);
-		}
-		return c;
-	}
+    @Override
+    public AggregateCount getCounts(String name, Interval interval, AggregateCountResolution resolution) {
+        return getOrCreate(name).getCounts(interval, resolution);
+    }
 
-	@Override
-	public long decrement(String name) {
-		throw new UnsupportedOperationException("Can't decrement an AggregateCounter");
-	}
+    @Override
+    public AggregateCount getCounts(String name, int nCounts, DateTime end, AggregateCountResolution resolution) {
+        return getOrCreate(name).getCounts(nCounts, end, resolution);
+    }
 
-	@Override
-	public void reset(String name) {
-		delete(name);
-	}
+    private synchronized InMemoryAggregateCounter getOrCreate(String name) {
+        InMemoryAggregateCounter c = aggregates.get(name);
+        if (c == null) {
+            c = new InMemoryAggregateCounter(name);
+            aggregates.put(name, c);
+        }
+        return c;
+    }
 
-	@Override
-	public <S extends Counter> S save(S entity) {
-		aggregates.remove(entity.getName());
-		increment(entity.getName(), (int) entity.getValue(), DateTime.now());
-		return entity;
-	}
+    @Override
+    public <S extends Counter> S save(S entity) {
+        aggregates.remove(entity.getName());
+        increment(entity.getName(), (int) entity.getValue(), DateTime.now());
+        return entity;
+    }
 
-	@Override
-	public Counter findOne(String id) {
-		InMemoryAggregateCounter aggregate = getOrCreate(id);
-		return aggregate;
-	}
+    @Override
+    protected String keyFor(Counter entity) {
+        return entity.getName();
+    }
 
-	@Override
-	public Iterable<Counter> findAll() {
-		return new ArrayList<Counter>(aggregates.values());
-	}
+    @Override
+    public Counter findOne(String id) {
+        InMemoryAggregateCounter aggregate = getOrCreate(id);
+        return aggregate;
+    }
 
-	@Override
-	public long count() {
-		return aggregates.size();
-	}
+    @Override
+    public Iterable<Counter> findAll() {
+        return new ArrayList<Counter>(aggregates.values());
+    }
 
-	@Override
-	public void delete(String id) {
-		aggregates.remove(id);
-	}
+    @Override
+    public long count() {
+        return aggregates.size();
+    }
 
-	@Override
-	public void delete(Counter entity) {
-		delete(entity.getName());
-	}
+    @Override
+    public void delete(String id) {
+        aggregates.remove(id);
+    }
 
-	@Override
-	public void deleteAll() {
-		aggregates.clear();
-	}
+    @Override
+    public void delete(Counter entity) {
+        delete(entity.getName());
+    }
 
-	@Override
-	protected String keyFor(Counter entity) {
-		return entity.getName();
-	}
+    @Override
+    public void deleteAll() {
+        aggregates.clear();
+    }
 
 }

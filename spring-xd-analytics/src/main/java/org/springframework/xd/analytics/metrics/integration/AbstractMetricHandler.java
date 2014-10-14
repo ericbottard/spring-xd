@@ -26,29 +26,32 @@ import org.springframework.util.Assert;
 
 
 /**
+ * Abstract support class for authoring metrics oriented handlers. Provides support for
+ * dynamically choosing the name of the counter to contribute to.
  *
+ * @author Eric Bottard
  */
 abstract class AbstractMetricHandler implements IntegrationEvaluationContextAware {
 
-	protected final Expression nameExpression;
+    protected final Expression nameExpression;
 
-	protected EvaluationContext evaluationContext = new StandardEvaluationContext();
+    protected final SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
 
-	protected SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
+    protected EvaluationContext evaluationContext = new StandardEvaluationContext();
 
-	protected AbstractMetricHandler(String nameExpression) {
-		Assert.notNull(nameExpression, "Metric name expression can not be null");
-		this.nameExpression = spelExpressionParser.parseExpression(nameExpression);
-	}
+    protected AbstractMetricHandler(String nameExpression) {
+        Assert.notNull(nameExpression, "Metric name expression can not be null");
+        this.nameExpression = spelExpressionParser.parseExpression(nameExpression);
+    }
 
-	protected String computeMtricName(Message<?> message) {
-		String counterName = nameExpression.getValue(evaluationContext, message, CharSequence.class).toString();
-		return counterName;
-	}
+    protected String computeMtricName(Message<?> message) {
+        return nameExpression.getValue(evaluationContext, message, CharSequence.class).toString();
+    }
 
-	@Override
-	public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
-		this.evaluationContext = evaluationContext;
-	}
+    @Override
+    public void setIntegrationEvaluationContext(EvaluationContext evaluationContext) {
+        Assert.notNull(evaluationContext, "'evaluationContext' cannot be null");
+        this.evaluationContext = evaluationContext;
+    }
 
 }

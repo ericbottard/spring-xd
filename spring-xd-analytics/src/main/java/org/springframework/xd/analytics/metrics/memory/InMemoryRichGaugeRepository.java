@@ -16,46 +16,45 @@
 
 package org.springframework.xd.analytics.metrics.memory;
 
-import static org.springframework.xd.analytics.metrics.core.MetricUtils.setRichGaugeValue;
-
 import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.RichGauge;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+
+import static org.springframework.xd.analytics.metrics.core.MetricUtils.setRichGaugeValue;
 
 /**
  * Memory backed implementation of GaugeRepository that uses a ConcurrentMap
  *
  * @author Luke Taylor
- *
  */
 public class InMemoryRichGaugeRepository extends InMemoryMetricRepository<RichGauge>
-implements RichGaugeRepository {
+        implements RichGaugeRepository {
 
-	@Override
-	protected RichGauge create(String name) {
-		return new RichGauge(name);
-	}
+    @Override
+    public void setValue(String name, double value, double alpha) {
+        RichGauge gauge = getOrCreate(name);
+        setRichGaugeValue(gauge, value, alpha);
+    }
 
-	@Override
-	protected RichGauge getOrCreate(String name) {
-		Assert.notNull(name, "Gauge name can not be null");
-		RichGauge gauge = findOne(name);
-		if (gauge == null) {
-			gauge = new RichGauge(name);
-			save(gauge);
-		}
-		return gauge;
-	}
+    @Override
+    public void reset(String name) {
+        RichGauge gauge = getOrCreate(name);
+        setRichGaugeValue(gauge, 0, -1D);
+    }
 
-	@Override
-	public void reset(String name) {
-		RichGauge gauge = getOrCreate(name);
-		setRichGaugeValue(gauge, 0, -1D);
-	}
+    @Override
+    protected RichGauge getOrCreate(String name) {
+        Assert.notNull(name, "Gauge name can not be null");
+        RichGauge gauge = findOne(name);
+        if (gauge == null) {
+            gauge = new RichGauge(name);
+            save(gauge);
+        }
+        return gauge;
+    }
 
-	@Override
-	public void setValue(String name, double value, double alpha) {
-		RichGauge gauge = getOrCreate(name);
-		setRichGaugeValue(gauge, value, alpha);
-	}
+    @Override
+    protected RichGauge create(String name) {
+        return new RichGauge(name);
+    }
 }
