@@ -35,7 +35,6 @@ public class RichGaugeHandler extends AbstractMetricHandler {
 		this.alpha = alpha;
 		Assert.notNull(richGaugeRepository, "Rich Gauge Repository can not be null");
 		this.richGaugeRepository = richGaugeRepository;
-		this.richGaugeRepository.save(new RichGauge(nameExpression));
 	}
 
 	@ServiceActivator
