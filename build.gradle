@@ -1367,3 +1367,7 @@ idea.project.ipr {
 		provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
 	}
 }
+
+task build(dependsOn: ':documentation-toolchain:checkDocsLinks') {
+	
+}
