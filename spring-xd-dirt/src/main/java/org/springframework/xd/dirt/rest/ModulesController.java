@@ -73,12 +73,13 @@ public class ModulesController {
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	@ResponseStatus(HttpStatus.OK)
 	@ResponseBody
-	public PagedResources<ModuleDefinitionResource> list(Pageable pageable,
-			PagedResourcesAssembler<ModuleDefinition> assembler,
-			@RequestParam(value = "type", required = false) ModuleType type) {
+	public PagedResources<? extends ModuleDefinitionResource> list(Pageable pageable,
+																   PagedResourcesAssembler<ModuleDefinition> assembler,
+																   @RequestParam(value = "type", required = false) ModuleType type,
+																   @RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
 		Page<ModuleDefinition> page = type == null ? moduleDefinitionService.findDefinitions(pageable) : moduleDefinitionService.findDefinitions(pageable, type);
-		PagedResources<ModuleDefinitionResource> result = assembler.toResource(page,
-				new ModuleDefinitionResourceAssembler());
+		PagedResources<? extends ModuleDefinitionResource> result = assembler.toResource(page,
+				detailed ? detailedAssembler: new ModuleDefinitionResourceAssembler());
 		return result;
 	}
 
