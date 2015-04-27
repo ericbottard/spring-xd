@@ -148,6 +148,7 @@ ext {
 	sparkVersion = '1.2.1'
 	sparkScalaVersion = '2.10'
 	sqoopVersion = '1.4.5'
+	influxdbJavaVersion = '1.5'
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
@@ -382,6 +383,7 @@ project('spring-xd-analytics') {
 			exclude group: 'org.springframework', module: 'spring-beans'
 			exclude group: 'org.springframework', module: 'spring-core'
 		}
+		compile "org.influxdb:influxdb-java:${influxdbJavaVersion}"
 		compile "redis.clients:jedis"
 		compile "org.springframework.integration:spring-integration-core"
 		compile "joda-time:joda-time"
