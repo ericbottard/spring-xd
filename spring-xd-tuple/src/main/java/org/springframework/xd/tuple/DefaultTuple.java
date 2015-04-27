@@ -17,11 +17,13 @@
 package org.springframework.xd.tuple;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,18 +35,14 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.util.AlternativeJdkIdGenerator;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.IdGenerator;
 
 /**
  * Default implementation of Tuple interface
- * 
  * @author Mark Pollack
  * @author David Turanski
  * @author Michael Minella
- * 
  */
 public class DefaultTuple implements Tuple {
 
@@ -59,24 +57,21 @@ public class DefaultTuple implements Tuple {
 
 	private List<Object> values;
 
-	private transient ConfigurableConversionService configurableConversionService;
+	private List<Class> types;
+
+	private transient TupleConversionServiceWrapper tupleConversionServiceWrapper;
 
 	private transient Converter<Tuple, String> tupleToStringConverter = new DefaultTupleToStringConverter();
 
-	private static volatile IdGenerator idGenerator = null;
+	private final UUID id;
 
-	private static final IdGenerator defaultIdGenerator = new AlternativeJdkIdGenerator();
+	private final Long timestamp;
 
-	private UUID id;
-
-	private Long timestamp;
-
-	// TODO consider making final and package protect ctor so as to always use TupleBuilder
-
-	public DefaultTuple(List<String> names, List<Object> values, ConfigurableConversionService configurableConversionService) {
+	DefaultTuple(List<String> names, List<Object> values, TupleConversionServiceWrapper
+			tupleConversionServiceWrapper, UUID uuid, Long timestamp) {
 		Assert.notNull(names);
 		Assert.notNull(values);
-		Assert.notNull(configurableConversionService);
+		Assert.notNull(tupleConversionServiceWrapper);
 		if (values.size() != names.size()) {
 			throw new IllegalArgumentException("Field names must be same length as values: names=" + names
 					+ ", values=" + values);
@@ -85,9 +80,13 @@ public class DefaultTuple implements Tuple {
 		// TODO check for no null values.
 		this.names = new ArrayList<>(names);
 		this.values = new ArrayList<>(values); // shallow copy
-		this.configurableConversionService = configurableConversionService;
-		this.id = getIdGenerator().generateId();
-		this.timestamp = System.currentTimeMillis();
+		this.types = new ArrayList<>(names.size());
+		for (Object obj : values) {
+			this.types.add(obj == null ? Void.class : obj.getClass());
+		}
+		this.tupleConversionServiceWrapper = tupleConversionServiceWrapper;
+		this.id = uuid;
+		this.timestamp = timestamp;
 	}
 
 	/*
@@ -120,9 +119,9 @@ public class DefaultTuple implements Tuple {
 		return this.timestamp;
 	}
 
+
 	/**
 	 * Return the values for all the fields in this tuple
-	 * 
 	 * @return an unmodifiable List of names.
 	 */
 	@Override
@@ -132,7 +131,6 @@ public class DefaultTuple implements Tuple {
 
 	/**
 	 * Return the values for all the fields in this tuple
-	 * 
 	 * @return an unmodifiable List list of values.
 	 */
 	@Override
@@ -182,10 +180,6 @@ public class DefaultTuple implements Tuple {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public List<Class> getFieldTypes() {
-		ArrayList<Class> types = new ArrayList<>(values.size());
-		for (Object val : values) {
-			types.add(val.getClass());
-		}
 		return Collections.unmodifiableList(types);
 	}
 
@@ -607,7 +601,7 @@ public class DefaultTuple implements Tuple {
 		}
 		else {
 			return new DefaultTuple(new ArrayList<String>(0), new ArrayList<>(0),
-					this.configurableConversionService);
+					this.tupleConversionServiceWrapper, null, null);
 		}
 	}
 
@@ -632,7 +626,7 @@ public class DefaultTuple implements Tuple {
 		for (Object value : resultMap.values()) {
 			newValues.add(value);
 		}
-		return new DefaultTuple(newNames, newValues, this.configurableConversionService);
+		return new DefaultTuple(newNames, newValues, this.tupleConversionServiceWrapper, null, null);
 
 	}
 
@@ -640,13 +634,13 @@ public class DefaultTuple implements Tuple {
 	<T> T convert(Object value, Class<T> targetType) {
 		// TODO wrap ConversionFailedException in IllegalArgumentException... may need to pass in index/field name for
 		// good error reporting.
-		return (T) configurableConversionService.convert(value, TypeDescriptor.forObject(value),
+		return (T) tupleConversionServiceWrapper.getConfigurableConversionService().convert(value, 
+				TypeDescriptor.forObject(value),
 				TypeDescriptor.valueOf(targetType));
 	}
 
 	/**
 	 * Find the index in the names collection for the given name.
-	 * 
 	 * Returns -1 if not found.
 	 */
 	protected int indexOf(String name) {
@@ -654,7 +648,6 @@ public class DefaultTuple implements Tuple {
 	}
 
 	/**
-	 * 
 	 * @param tupleToStringConverter used to convert a {@link Tuple} to a String
 	 */
 	protected void setTupleToStringConverter(Converter<Tuple, String> tupleToStringConverter) {
@@ -662,8 +655,29 @@ public class DefaultTuple implements Tuple {
 		this.tupleToStringConverter = tupleToStringConverter;
 	}
 
-	protected static IdGenerator getIdGenerator() {
-		return (idGenerator != null ? idGenerator : defaultIdGenerator);
+//	protected static IdGenerator getIdGenerator() {
+//		return (idGenerator != null ? idGenerator : defaultIdGenerator);
+//	}
+
+	/**
+	 * @return the conversionService
+	 */
+	public ConfigurableConversionService getConversionService() {
+		return tupleConversionServiceWrapper.getConfigurableConversionService();
+	}
+
+	/**
+	 * @return the Locale
+	 */
+	public Locale getLocale() {
+		return tupleConversionServiceWrapper.getLocale();
+	}
+
+	/**
+	 * @return the DateFormat
+	 */
+	public DateFormat getDateFormat() {
+		return tupleConversionServiceWrapper.getDateFormat();
 	}
 
 	@Override
