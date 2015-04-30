@@ -18,10 +18,154 @@
 
 package org.springframework.xd.analytics.metrics.influxdb;
 
+import org.influxdb.InfluxDB;
+import org.influxdb.InfluxDBFactory;
+import org.influxdb.dto.Serie;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static java.lang.String.format;
+import static java.util.Arrays.asList;
+
 /**
  * An InfluxDB backed field value counter repository.
  *
  * @author Eric Bottard
+ * @author Florent Biville
  */
-public class InfluxDBFieldValueCounterRepository {
+public class InfluxDBFieldValueCounterRepository extends AbstractInfluxDBMetricRepository<FieldValueCounter> implements FieldValueCounterRepository {
+
+    public static void main(String[] args) {
+        InfluxDB influxDB = InfluxDBFactory.connect("http://localhost:8086", "root", "root");
+        System.out.println(influxDB.ping());
+
+        List<Serie> foobar = influxDB.query("foobar", "select * from foot limit 1", TimeUnit.MILLISECONDS);
+        System.out.println(foobar.size());
+        System.out.println(foobar);
+        System.out.println(foobar.iterator().next().getRows().get(0).keySet());
+    }
+
+    protected InfluxDBFieldValueCounterRepository() {
+        super("field-value-counter", "http://localhost:8086", "root", "root", "foobar");
+    }
+
+    @Override
+    public void increment(String name, String fieldName) {
+        writeValue(name, fieldName, 1);
+    }
+
+    @Override
+    public void decrement(String name, String fieldName) {
+        writeValue(name, fieldName, -1);
+    }
+
+    @Override
+    public void reset(String name, String fieldName) {
+        Double currentValue = findOne(name).getFieldValueCount().get(fieldName);
+        writeValue(name, fieldName, -1 * currentValue);
+    }
+
+    @Override
+    public FieldValueCounter save(FieldValueCounter entity) {
+        String name = entity.getName();
+
+        Set<String> fields = entity.getFieldValueCount().keySet();
+        Map<String, Double> counters = updatedCounters(
+                entity,
+                fields,
+                currentSumsSerie(name, fields)
+        );
+
+        Serie serie = new Serie.Builder(seriesName(name))
+                .columns(fields.toArray(new String[fields.size()]))
+                .values(valuesToSave(fields, counters))
+                .build();
+
+        influxDB.write(dbName, TimeUnit.MILLISECONDS, serie);
+
+        return new FieldValueCounter(name, counters);
+    }
+
+    @Override
+    public FieldValueCounter findOne(String name) {
+        Serie columns = singleSerie(safeQuery("select * from %s limit 1", seriesName(name)));
+        Serie serie = currentSumsSerie(name, aggregateColumns(columns));
+
+        return new FieldValueCounter(name, asMap(serie));
+    }
+
+    @Override
+    public Iterable<FieldValueCounter> findAll() {
+        Collection<FieldValueCounter> results = new ArrayList<>();
+        List<Serie> series = safeQuery("select * from %s limit 1", all());
+        for (Serie serie : series) {
+            results.add(findOne(metricName(serie.getName())));
+        }
+        return results;
+    }
+
+    private <T extends Number> void writeValue(String name, String fieldName, T value) {
+        Serie serie = new Serie.Builder(seriesName(name)).columns(fieldName).values(value).build();
+        influxDB.write(dbName, TimeUnit.MILLISECONDS, serie);
+    }
+
+    private Serie currentSumsSerie(String name, Set<String> fields) {
+        StringBuilder from = new StringBuilder();
+        for (String field : fields) {
+            from.append(format("sum(%s) AS %s,", field, field));
+        }
+        String sums = from.substring(0, from.length() - 1);
+        return singleSerie(safeQuery("select %s from %s", sums, seriesName(name)));
+    }
+
+    private Map<String, Double> updatedCounters(FieldValueCounter entity, Set<String> fields, Serie previousSerie) {
+        Map<String, Double> result = new HashMap<>();
+        for (String field : fields) {
+            Map<String, Object> row = singleRow(previousSerie);
+            result.put(field, currentOrDelta(field, entity, row));
+        }
+        return result;
+    }
+
+    private Double[] valuesToSave(Set<String> fields, Map<String, Double> counters) {
+        List<Double> values = new ArrayList<>();
+        for (String field : fields) {
+            values.add(counters.get(field));
+        }
+        return values.toArray(new Double[fields.size()]);
+    }
+
+    private Set<String> aggregateColumns(Serie serie) {
+        Set<String> result = new LinkedHashSet<>();
+        for (String column : asList(serie.getColumns())) {
+            if (!RESERVED_COLUMNS.contains(column)) {
+                result.add(column);
+            }
+        }
+        return result;
+    }
+
+    private Map<String, Double> asMap(Serie serie) {
+        Map<String, Double> result = new HashMap<>();
+        Map<String, Object> row = singleRow(serie);
+        for (Map.Entry<String, Object> column: row.entrySet()) {
+            String columnName = column.getKey();
+            if (!RESERVED_COLUMNS.contains(columnName)) {
+                result.put(columnName, (Double) column.getValue());
+            }
+        }
+        return result;
+    }
+
+    private Double currentOrDelta(String field, FieldValueCounter entity, Map<String, Object> previous) {
+        Double previousValue = (Double) previous.get(field);
+        Double currentValue = entity.getFieldValueCount().get(field);
+        if (previousValue == null) {
+            return currentValue;
+        }
+        return currentValue - previousValue;
+    }
 }
