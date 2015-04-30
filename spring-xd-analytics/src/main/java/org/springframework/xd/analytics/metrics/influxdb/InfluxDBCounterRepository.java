@@ -73,6 +73,7 @@ public class InfluxDBCounterRepository extends AbstractInfluxDBMetricRepository<
 
     @Override
     public void reset(String name) {
+        //TODO: reset value to 0, do not delete
         delete(name);
     }
 
@@ -103,6 +104,7 @@ public class InfluxDBCounterRepository extends AbstractInfluxDBMetricRepository<
     public Counter findOne(String name) {
         List<Serie> series = safeQuery("select sum(increment) from %s", seriesName(name));
         Double sum = singleScalar(series, "sum");
+        //TODO: for consistency (w.r.t. other impl), return null when 0 (reset)?
         return sum == null ? null : new Counter(name, sum.longValue());
     }
 
