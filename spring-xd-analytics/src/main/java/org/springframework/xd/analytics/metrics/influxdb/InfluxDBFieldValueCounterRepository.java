@@ -18,9 +18,8 @@
 
 package org.springframework.xd.analytics.metrics.influxdb;
 
-import org.influxdb.InfluxDB;
-import org.influxdb.InfluxDBFactory;
 import org.influxdb.dto.Serie;
+import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounter;
 import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 
@@ -38,32 +37,31 @@ import static java.util.Arrays.asList;
  */
 public class InfluxDBFieldValueCounterRepository extends AbstractInfluxDBMetricRepository<FieldValueCounter> implements FieldValueCounterRepository {
 
-    public static void main(String[] args) {
-        InfluxDB influxDB = InfluxDBFactory.connect("http://localhost:8086", "root", "root");
-        System.out.println(influxDB.ping());
-
-        List<Serie> foobar = influxDB.query("foobar", "select * from foot limit 1", TimeUnit.MILLISECONDS);
-        System.out.println(foobar.size());
-        System.out.println(foobar);
-        System.out.println(foobar.iterator().next().getRows().get(0).keySet());
-    }
-
-    protected InfluxDBFieldValueCounterRepository() {
+    public InfluxDBFieldValueCounterRepository() {
         super("field-value-counter", "http://localhost:8086", "root", "root", "foobar");
     }
 
     @Override
     public void increment(String name, String fieldName) {
+        Assert.hasText(name, "The name of the FieldValueCounter must not be blank");
+        Assert.hasText(fieldName, "The field name of the FieldValueCounter must not be blank");
+
         writeValue(name, fieldName, 1);
     }
 
     @Override
     public void decrement(String name, String fieldName) {
+        Assert.hasText(name, "The name of the FieldValueCounter must not be blank");
+        Assert.hasText(fieldName, "The field name of the FieldValueCounter must not be blank");
+
         writeValue(name, fieldName, -1);
     }
 
     @Override
     public void reset(String name, String fieldName) {
+        Assert.hasText(name, "The name of the FieldValueCounter must not be blank");
+        Assert.hasText(fieldName, "The field name of the FieldValueCounter must not be blank");
+
         Double currentValue = findOne(name).getFieldValueCount().get(fieldName);
         writeValue(name, fieldName, -1 * currentValue);
     }
@@ -91,6 +89,8 @@ public class InfluxDBFieldValueCounterRepository extends AbstractInfluxDBMetricR
 
     @Override
     public FieldValueCounter findOne(String name) {
+        Assert.hasText(name, "The name of the FieldValueCounter must not be blank");
+
         Serie columns = singleSerie(safeQuery("select * from %s limit 1", seriesName(name)));
         Serie serie = currentSumsSerie(name, aggregateColumns(columns));
 
