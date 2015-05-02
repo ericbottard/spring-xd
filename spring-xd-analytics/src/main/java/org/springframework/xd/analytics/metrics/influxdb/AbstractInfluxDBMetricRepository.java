@@ -27,6 +27,7 @@ import org.springframework.xd.analytics.metrics.core.Metric;
 import org.springframework.xd.analytics.metrics.core.MetricRepository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +47,8 @@ import java.util.concurrent.TimeUnit;
 	protected InfluxDB influxDB;
 
 	private String prefix;
+
+	protected static final List<String> RESERVED_COLUMNS = Arrays.asList("time", "sequence_number");
 
 	protected AbstractInfluxDBMetricRepository(String prefix, String url, String username, String password, String dbName) {
 		this.prefix = prefix;
@@ -107,14 +110,15 @@ import java.util.concurrent.TimeUnit;
 	 * Return the name of the Influx DB series that should be used to store the Spring XD metric.
 	 */
 	protected String seriesName(String metricName) {
-		return prefix + "." + metricName;
+		String name = prefix + "." + metricName;
+		return String.format("\"%s\"", name.replace("\"", "\\\""));
 	}
 
 	/**
 	 * Return the regex that matches all series for this class kind of metrics.
 	 */
 	protected String all() {
-		return "/" + seriesName(".*") + "/";
+		return "/" + prefix + "..*" + "/";
 	}
 
 	/**

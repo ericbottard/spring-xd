@@ -27,7 +27,7 @@
 		  class="org.springframework.xd.analytics.metrics.influxdb.InfluxDBCounterRepository">
 	</bean>
 
-	<bean id="fieldValueCounterRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryFieldValueCounterRepository" />
+	<bean id="fieldValueCounterRepository" class="org.springframework.xd.analytics.metrics.influxdb.InfluxDBFieldValueCounterRepository" />
 
 	<bean id="gaugeRepository" class="org.springframework.xd.analytics.metrics.memory.InMemoryGaugeRepository" />
 

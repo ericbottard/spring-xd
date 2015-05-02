@@ -1027,6 +1027,7 @@ project('spring-xd-test') {
 		compile "org.springframework:spring-web"
 		compile "org.springframework:spring-test"
 		compile "org.springframework.data:spring-data-hadoop-test"
+		compile "org.influxdb:influxdb-java:${influxdbJavaVersion}"
 		compile "redis.clients:jedis"
 		compile "org.hsqldb:hsqldb"
 		compile "org.apache.tomcat:tomcat-jdbc"
