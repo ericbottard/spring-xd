@@ -83,7 +83,7 @@ public class AggregateCountersControllerIntegrationTests extends AbstractControl
 	public void testDetailedAggregateCountersListing() throws Exception {
 		setupAggCounts(10);
 
-		ResultActions resActions = mockMvc.perform(get("/metrics/aggregate-counters?detailed=true")).andExpect(
+		ResultActions resActions = mockMvc.perform(get("/metrics/aggregate-counters?detailed=true&resolution=minute")).andExpect(
 				status().isOk())//
 				.andExpect(jsonPath("$.content", Matchers.hasSize(10)));
 

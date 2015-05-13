@@ -68,19 +68,22 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 	@RequestMapping(value = "", method = RequestMethod.GET)
 	public PagedResources<? extends MetricResource> list(Pageable pageable,
 			PagedResourcesAssembler<Counter> pagedAssembler,
-			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed) {
+			@RequestParam(value = "detailed", defaultValue = "false") boolean detailed,//
+			@RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime from, //
+			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
+			@RequestParam(value = "resolution", defaultValue = "hour") AggregateCountResolution resolution) {
 		PagedResources<? extends MetricResource> resources = list(pageable, pagedAssembler, shallowResourceAssembler);
 		if (detailed) {
-			AggregateCountResolution resolution = AggregateCountResolution.minute;
-			DateTime to = new DateTime();
-			DateTime from = fromValue(to, resolution);
+			to = providedOrDefaultToValue(to);
+			from = providedOrDefaultFromValue(from, to, resolution);
 			Interval interval = new Interval(from, to);
-			List<AggregateCountsResource> aggregateCounts = new LinkedList<AggregateCountsResource>();
+
+			List<AggregateCountsResource> aggregateCounts = new LinkedList<>();
 			for (MetricResource metricResource : resources) {
 				AggregateCount aggregateCount = repository.getCounts(metricResource.getName(), interval, resolution);
 				aggregateCounts.add(aggregateCountResourceAssembler.toResource(aggregateCount));
 			}
-			return new PagedResources<AggregateCountsResource>(aggregateCounts, resources.getMetadata());
+			return new PagedResources<>(aggregateCounts, resources.getMetadata());
 		}
 		return resources;
 	}
@@ -101,19 +104,31 @@ public class AggregateCountersController extends AbstractMetricsController<Aggre
 			@RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) DateTime to, //
 			@RequestParam(value = "resolution", defaultValue = "hour") AggregateCountResolution resolution) {
 
-		if (to == null) {
-			to = new DateTime();
-		}
-		if (from == null) {
-			from = fromValue(to, resolution);
-		}
+		to = providedOrDefaultToValue(to);
+		from = providedOrDefaultFromValue(from, to, resolution);
 
 		AggregateCount aggregate = repository.getCounts(name, new Interval(from, to), resolution);
 
 		return aggregateCountResourceAssembler.toResource(aggregate);
 	}
 
-	private DateTime fromValue(DateTime to, AggregateCountResolution resolution) {
+	/**
+	 * Return a default value for the interval end if none has been provided.
+	 */
+	private DateTime providedOrDefaultToValue(DateTime to) {
+		if (to == null) {
+			to = new DateTime();
+		}
+		return to;
+	}
+
+	/**
+	 * Return a default value for the interval start if none has been provided.
+	 */
+	private DateTime providedOrDefaultFromValue(DateTime from, DateTime to, AggregateCountResolution resolution) {
+		if (from != null) {
+			return from;
+		}
 		switch (resolution) {
 			case minute:
 				return to.minusMinutes(59);
