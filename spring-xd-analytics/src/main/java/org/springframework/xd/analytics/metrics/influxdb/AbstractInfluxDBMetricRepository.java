@@ -86,7 +86,14 @@ import java.util.concurrent.TimeUnit;
 
 	@Override
 	public void deleteAll() {
-		influxDB.deleteSeries(dbName, all());
+		try {
+			influxDB.deleteSeries(dbName, all());
+		}
+		catch (RuntimeException e) {
+			if (!"404 page not found\n".equals(e.getMessage())) {
+				throw e;
+			}
+		}
 	}
 
 	@Override

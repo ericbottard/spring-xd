@@ -28,6 +28,7 @@ public class InfluxDBTestSupport extends AbstractExternalResourceTestSupport<Inf
 
     @Override
     protected void cleanupResource() throws Exception {
+        resource.deleteDatabase("foobar");
     }
 
     @Override
