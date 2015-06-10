@@ -18,6 +18,7 @@ package org.springframework.xd.shell.command;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,16 @@ import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
+import org.springframework.shell.table.BeanListModel;
+import org.springframework.shell.table.BorderFactory;
+import org.springframework.shell.table.BorderSpecification;
+import org.springframework.shell.table.CellMatchers;
+import org.springframework.shell.table.KeyValueHorizontalAligner;
+import org.springframework.shell.table.KeyValueSizeConstraints;
+import org.springframework.shell.table.MapFormatter;
+import org.springframework.shell.table.NoWrapSizeConstraints;
+import org.springframework.shell.table.SimpleHorizontalAligner;
+import org.springframework.shell.table.TableModel;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.rest.client.RuntimeOperations;
@@ -81,7 +92,8 @@ public class RuntimeCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List runtime modules")
-	public Table listDeployedModules(
+	public String listDeployedModules(@CliOption(key="newTable", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "use new table") boolean newTable,
+			@CliOption(key="width", unspecifiedDefaultValue = "125", help = "term width") int width,
 			@CliOption(mandatory = false, key = { "containerId" }, help = "to filter by container id") String containerId,
 			@CliOption(mandatory = false, key = { "moduleId" }, help = "to filter by module id") String moduleId) {
 		Iterable<ModuleMetadataResource> runtimeModules;
@@ -108,7 +120,34 @@ public class RuntimeCommands implements CommandMarker {
 					.addValue(2, module.getContainerId()).addValue(3, module.getModuleOptions().toString()).addValue(4,
 							module.getDeploymentProperties().toString()).addValue(5, unitStatus);
 		}
-		return table;
+
+
+		LinkedHashMap<String, Object> header = new LinkedHashMap<>();
+		header.put("moduleId", "Module Id");
+		header.put("containerId", "Container Id");
+		header.put("moduleOptions", "Options");
+		header.put("deploymentProperties", "Deployment Properties");
+		header.put("deploymentStatus", "Unit Status");
+
+		TableModel tableModel = new BeanListModel<>(ModuleMetadataResource.class, runtimeModules, header);
+		org.springframework.shell.table.Table table2 = new org.springframework.shell.table.Table(tableModel);
+
+		table2.align(CellMatchers.row(0), new SimpleHorizontalAligner(SimpleHorizontalAligner.Align.center));
+
+		table2.format(CellMatchers.ofType(Map.class), new MapFormatter(" = "));
+		table2.align(CellMatchers.ofType(Map.class), new KeyValueHorizontalAligner(" = "));
+		table2.size(CellMatchers.ofType(Map.class), new KeyValueSizeConstraints(" = "));
+
+		table2.align(CellMatchers.column(4), new SimpleHorizontalAligner(SimpleHorizontalAligner.Align.center));
+		BorderFactory.headerAndVerticals(table2);
+
+		width = jline.TerminalFactory.get().getWidth();
+		return newTable ? table2.render(width) : table.toString();
+
+
+
+
+//		return table;
 	}
 
 	private RuntimeOperations runtimeOperations() {

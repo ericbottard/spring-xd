@@ -115,6 +115,7 @@ allprojects {
 
 	repositories {
 		mavenCentral()
+		mavenLocal()
 		maven { url 'http://repo.spring.io/milestone' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
 		maven { url 'http://repo.spring.io/plugins-release' }
@@ -143,7 +144,7 @@ ext {
 	springIntegrationSplunkVersion = '1.1.0.RELEASE'
 	springIntegrationKafkaVersion = '1.2.0.RELEASE'
 	kafkaVersion = '0.8.2.1'
-	springShellVersion = '1.1.0.RELEASE'
+	springShellVersion = '1.1.0.BUILD-SNAPSHOT'
 	zookeeperVersion = '3.4.6'
 	sparkVersion = '1.2.1'
 	sparkScalaVersion = '2.10'
