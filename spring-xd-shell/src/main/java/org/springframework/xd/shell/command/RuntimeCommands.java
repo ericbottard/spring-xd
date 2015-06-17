@@ -92,10 +92,9 @@ public class RuntimeCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = LIST_MODULES, help = "List runtime modules")
-	public String listDeployedModules(@CliOption(key="newTable", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false", help = "use new table") boolean newTable,
-			@CliOption(key="width", unspecifiedDefaultValue = "125", help = "term width") int width,
-			@CliOption(mandatory = false, key = { "containerId" }, help = "to filter by container id") String containerId,
-			@CliOption(mandatory = false, key = { "moduleId" }, help = "to filter by module id") String moduleId) {
+	public org.springframework.shell.table.Table listDeployedModules(
+			@CliOption(mandatory = false, key = {"containerId"}, help = "to filter by container id") String containerId,
+			@CliOption(mandatory = false, key = {"moduleId"}, help = "to filter by module id") String moduleId) {
 		Iterable<ModuleMetadataResource> runtimeModules;
 		if (StringUtils.hasText(containerId) && StringUtils.hasText(moduleId)) {
 			runtimeModules = Collections.singletonList(runtimeOperations().listDeployedModule(containerId, moduleId));
@@ -109,18 +108,6 @@ public class RuntimeCommands implements CommandMarker {
 		else {
 			runtimeModules = runtimeOperations().listDeployedModules();
 		}
-		final Table table = new Table();
-		table.addHeader(1, new TableHeader("Module Id")).addHeader(2,
-				new TableHeader("Container Id")).addHeader(3, new TableHeader("Options")).addHeader(4,
-				new TableHeader("Deployment Properties")).addHeader(5, new TableHeader("Unit status"));
-		for (ModuleMetadataResource module : runtimeModules) {
-			final TableRow row = table.newRow();
-			String unitStatus = (module.getDeploymentStatus() != null) ? module.getDeploymentStatus().name() : "";
-			row.addValue(1, String.format("%s.%s.%s", module.getUnitName(), module.getModuleType(), module.getName()))
-					.addValue(2, module.getContainerId()).addValue(3, module.getModuleOptions().toString()).addValue(4,
-							module.getDeploymentProperties().toString()).addValue(5, unitStatus);
-		}
-
 
 		LinkedHashMap<String, Object> header = new LinkedHashMap<>();
 		header.put("moduleId", "Module Id");
@@ -141,13 +128,7 @@ public class RuntimeCommands implements CommandMarker {
 		table2.align(CellMatchers.column(4), new SimpleHorizontalAligner(SimpleHorizontalAligner.Align.center));
 		BorderFactory.headerAndVerticals(table2);
 
-		width = jline.TerminalFactory.get().getWidth();
-		return newTable ? table2.render(width) : table.toString();
-
-
-
-
-//		return table;
+		return table2;
 	}
 
 	private RuntimeOperations runtimeOperations() {

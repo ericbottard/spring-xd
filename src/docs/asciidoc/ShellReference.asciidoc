@@ -42,10 +42,8 @@ $$List runtime containers$$.
 ==== $$runtime modules$$
 $$List runtime modules$$.
 
-    runtime modules [--newTable [<newTable>]] [--width <width>] [--containerId <containerId>] [--moduleId <moduleId>]
+    runtime modules [--containerId <containerId>] [--moduleId <moduleId>]
 
-*$$newTable$$*:: $$use new table$$. *(default: `false`, or `true` if +--newTable+ is specified without a value)*
-*$$width$$*:: $$term width$$. *(default: `125`)*
 *$$containerId$$*:: $$to filter by container id$$.
 *$$moduleId$$*:: $$to filter by module id$$.
 
