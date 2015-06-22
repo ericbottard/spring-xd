@@ -18,9 +18,10 @@ package org.springframework.xd.shell.command;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.fusesource.jansi.Ansi;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -29,6 +30,8 @@ import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
+import org.springframework.shell.table.BorderFactory;
+import org.springframework.shell.table.TableModelBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
@@ -37,10 +40,6 @@ import org.springframework.xd.rest.domain.ModuleDefinitionResource;
 import org.springframework.xd.rest.domain.RESTModuleType;
 import org.springframework.xd.shell.XDShell;
 import org.springframework.xd.shell.util.Table;
-import org.springframework.xd.shell.util.TableHeader;
-import org.springframework.xd.shell.util.TableRow;
-
-import static org.fusesource.jansi.Ansi.ansi;
 
 /**
  * Commands for working with modules. Allows retrieval of information about available modules, as well as creating new
@@ -74,40 +73,59 @@ public class ModuleCommands implements CommandMarker {
 	}
 
 	@CliCommand(value = MODULE_INFO, help = "Get information about a module")
-	public String moduleInfo(
+	public List<Object> moduleInfo(
 			@CliOption(mandatory = true, key = {"name", ""}, help = "name of the module to query, in the form 'type:name'") QualifiedModuleName module,
 			@CliOption(key = "hidden", help = "whether to show 'hidden' options", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean showHidden
 	) {
+		List<Object> result = new ArrayList<>();
+
 		DetailedModuleDefinitionResource info = moduleOperations().info(module.name, module.type);
 		List<Option> options = info.getOptions();
-		StringBuilder result = new StringBuilder();
-		result.append("Information about ").append(module.type.name()).append(" module '").append(module.name).append(
+		StringBuilder intro = new StringBuilder();
+		intro.append("Information about ").append(module.type.name()).append(" module '").append(module.name).append(
 				"':\n\n");
 
 		if (info.getShortDescription() != null) {
-			result.append(info.getShortDescription()).append("\n\n");
+			intro.append(info.getShortDescription()).append("\n\n");
 		}
+		result.add(intro);
+
 		if (options == null) {
-			result.append("Module options metadata is not available");
+			result.add("Module options metadata is not available");
 		}
 		else {
-			Table table = new Table().addHeader(1, new TableHeader("Option Name")).addHeader(2,
-					new TableHeader("Description")).addHeader(
-					3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
+			TableModelBuilder tmb = new TableModelBuilder();
+			tmb.addRow().addValue("Option Name").addValue("Description").addValue("Default").addValue("Type");
 			for (DetailedModuleDefinitionResource.Option o : options) {
 				if (!showHidden && o.isHidden()) {
 					continue;
 				}
-				final TableRow row = new TableRow();
-				row.addValue(1, o.getName())
-						.addValue(2, o.getDescription())
-						.addValue(3, prettyPrintDefaultValue(o))
-						.addValue(4, o.getType() == null ? "<unknown>" : o.getType());
-				table.getRows().add(row);
+				tmb.addRow()
+						.addValue(o.getName())
+						.addValue(o.getDescription())
+						.addValue(prettyPrintDefaultValue(o))
+						.addValue(o.getType() == null ? "<unknown>" : o.getType());
 			}
-			result.append(table.toString());
+			org.springframework.shell.table.Table table = new org.springframework.shell.table.Table(tmb.build());
+			BorderFactory.headerAndVerticals(table);
+			result.add(table);
+//			Table table = new Table().addHeader(1, new TableHeader("Option Name")).addHeader(2,
+//					new TableHeader("Description")).addHeader(
+//					3, new TableHeader("Default")).addHeader(4, new TableHeader("Type"));
+//			for (DetailedModuleDefinitionResource.Option o : options) {
+//				if (!showHidden && o.isHidden()) {
+//					continue;
+//				}
+//				final TableRow row = new TableRow();
+//				row.addValue(1, o.getName())
+//						.addValue(2, o.getDescription())
+//						.addValue(3, prettyPrintDefaultValue(o))
+//						.addValue(4, o.getType() == null ? "<unknown>" : o.getType());
+//				table.getRows().add(row);
+//			}
+//			intro.append(table.toString());
 		}
-		return result.toString();
+		return result;
 	}
 
 	/**

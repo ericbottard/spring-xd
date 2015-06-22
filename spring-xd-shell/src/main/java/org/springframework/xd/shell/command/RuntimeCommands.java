@@ -31,8 +31,10 @@ import org.springframework.shell.table.BeanListModel;
 import org.springframework.shell.table.BorderFactory;
 import org.springframework.shell.table.BorderSpecification;
 import org.springframework.shell.table.CellMatchers;
+import org.springframework.shell.table.DelimiterTextWrapper;
 import org.springframework.shell.table.KeyValueHorizontalAligner;
 import org.springframework.shell.table.KeyValueSizeConstraints;
+import org.springframework.shell.table.KeyValueTextWrapper;
 import org.springframework.shell.table.MapFormatter;
 import org.springframework.shell.table.NoWrapSizeConstraints;
 import org.springframework.shell.table.SimpleHorizontalAligner;
@@ -124,6 +126,7 @@ public class RuntimeCommands implements CommandMarker {
 		table2.format(CellMatchers.ofType(Map.class), new MapFormatter(" = "));
 		table2.align(CellMatchers.ofType(Map.class), new KeyValueHorizontalAligner(" = "));
 		table2.size(CellMatchers.ofType(Map.class), new KeyValueSizeConstraints(" = "));
+		table2.wrap(CellMatchers.ofType(Map.class), new KeyValueTextWrapper());
 
 		table2.align(CellMatchers.column(4), new SimpleHorizontalAligner(SimpleHorizontalAligner.Align.center));
 		BorderFactory.headerAndVerticals(table2);
