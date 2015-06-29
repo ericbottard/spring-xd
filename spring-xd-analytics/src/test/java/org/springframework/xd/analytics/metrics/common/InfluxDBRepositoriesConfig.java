@@ -21,9 +21,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
+import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBCounterRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBGaugeRepository;
+import org.springframework.xd.analytics.metrics.influxdb.InfluxDBRichGaugeRepository;
 
 /**
  * Provides InfluxDB backed repositories, to be tested one by one in InfluxDB variant of tests.
@@ -47,5 +49,9 @@ public class InfluxDBRepositoriesConfig {
     @Bean
     public GaugeRepository gaugeRepository() {
         return new InfluxDBGaugeRepository();
+    }
+    @Bean
+    public RichGaugeRepository richGaugeRepository() {
+        return new InfluxDBRichGaugeRepository();
     }
 }
