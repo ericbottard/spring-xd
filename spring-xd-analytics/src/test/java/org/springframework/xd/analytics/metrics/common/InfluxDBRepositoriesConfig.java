@@ -17,8 +17,10 @@
 package org.springframework.xd.analytics.metrics.common;
 
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.analytics.metrics.influxdb.InfluxDBCounterRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBFieldValueCounterRepository;
 
 /**
@@ -32,5 +34,11 @@ public class InfluxDBRepositoriesConfig {
     @Bean
     public InfluxDBFieldValueCounterRepository influxDBFieldValueCounterRepository() {
         return new InfluxDBFieldValueCounterRepository();
+    }
+
+    @Bean
+    @Qualifier("simple")
+    public InfluxDBCounterRepository influxDBCounterRepository() {
+        return new InfluxDBCounterRepository();
     }
 }

@@ -24,6 +24,7 @@ import org.influxdb.dto.Serie;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.Assert;
 import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
@@ -102,6 +103,7 @@ public class InfluxDBCounterRepository extends AbstractInfluxDBMetricRepository<
 
     @Override
     public Counter findOne(String name) {
+        Assert.notNull(name, "name cannot be null");
         List<Serie> series = safeQuery("select sum(increment) from %s", seriesName(name));
         Double sum = singleScalar(series, "sum");
         //TODO: for consistency (w.r.t. other impl), return null when 0 (reset)?

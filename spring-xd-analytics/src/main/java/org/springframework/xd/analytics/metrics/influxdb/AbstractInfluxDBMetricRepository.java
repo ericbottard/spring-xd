@@ -63,17 +63,19 @@ import java.util.concurrent.TimeUnit;
 
 	@Override
 	public long count() {
-		return safeQuery("select time from %s limit 1", all()).size();
+		return safeQuery("select * from %s limit 1", all()).size();
 	}
 
 	@Override
 	public void delete(String name) {
+		Assert.notNull(name, "name cannot be null");
 		influxDB.deleteSeries(dbName, seriesName(name));
 	}
 
 
 	@Override
 	public void delete(M entity) {
+		Assert.notNull(entity, "entity cannot be null");
 		delete(entity.getName());
 	}
 
@@ -118,14 +120,14 @@ import java.util.concurrent.TimeUnit;
 	 */
 	protected String seriesName(String metricName) {
 		String name = prefix + "." + metricName;
-		return String.format("\"%s\"", name.replace("\"", "\\\""));
+		return name;
 	}
 
 	/**
 	 * Return the regex that matches all series for this class kind of metrics.
 	 */
 	protected String all() {
-		return "/" + prefix + "..*" + "/";
+		return "/" + prefix + "\\..*" + "/";
 	}
 
 	/**
