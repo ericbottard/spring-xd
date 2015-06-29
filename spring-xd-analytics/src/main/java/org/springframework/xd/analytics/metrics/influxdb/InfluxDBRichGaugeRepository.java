@@ -40,7 +40,7 @@ public class InfluxDBRichGaugeRepository extends AbstractInfluxDBMetricRepositor
 	private static final String VALUE_COLUMN = "value";
 
 	public InfluxDBRichGaugeRepository(String url, String username, String password, String dbName) {
-		super("rich_gauge", url, username, password, dbName, Arrays.asList("time", "sequence_number"));
+		super("rich_gauge", url, username, password, dbName, Arrays.asList(TIME_COLUMN, SEQUENCE_COLUMN));
 	}
 
 	public InfluxDBRichGaugeRepository() {
@@ -60,7 +60,7 @@ public class InfluxDBRichGaugeRepository extends AbstractInfluxDBMetricRepositor
 		Assert.hasText(name, "The name of the RichGaugeCounter must not be blank");
 
 		List<Serie> series = safeQuery(
-				"SELECT FIRST(%s) as val, MEAN(%s) as average, MAX(%s) as max, MIN(%s) as min, COUNT(%s) as count FROM %s LIMIT 1",
+				"select first(%s) as val, mean(%s) as average, max(%s) as max, min(%s) as min, count(%s) as count from %s limit 1",
 				VALUE_COLUMN,
 				VALUE_COLUMN,
 				VALUE_COLUMN,
@@ -83,7 +83,7 @@ public class InfluxDBRichGaugeRepository extends AbstractInfluxDBMetricRepositor
 	@Override
 	public Iterable<RichGauge> findAll() {
 		List<Serie> series = safeQuery(
-				"SELECT FIRST(%s) as val, MEAN(%s) as average, MAX(%) as max, MIN(%s) as min, COUNT(%s) as count FROM %s LIMIT 1",
+				"select first(%s) as val, mean(%s) as average, max(%s) as max, min(%s) as min, count(%s) as count from %s limit 1",
 				VALUE_COLUMN,
 				VALUE_COLUMN,
 				VALUE_COLUMN,

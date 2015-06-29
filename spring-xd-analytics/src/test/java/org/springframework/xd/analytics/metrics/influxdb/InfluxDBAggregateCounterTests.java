@@ -1,11 +1,11 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2011-2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,33 +16,38 @@
 
 package org.springframework.xd.analytics.metrics.influxdb;
 
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.xd.analytics.metrics.AbstractFieldValueCounterRepositoryTests;
+import org.springframework.xd.analytics.metrics.AbstractAggregateCounterTests;
 import org.springframework.xd.analytics.metrics.common.InfluxDBRepositoriesConfig;
+import org.springframework.xd.analytics.metrics.common.RedisRepositoriesConfig;
 import org.springframework.xd.test.influxdb.InfluxDBTestSupport;
+import org.springframework.xd.test.redis.RedisTestSupport;
 
 /**
- * Tests for field value counter repositories based on InfluxDB.
+ * Tests for aggregate counter repositories based on InfluxDB.
  *
  * @author Eric Bottard
  * @author Florent Biville
  */
 @ContextConfiguration(classes = InfluxDBRepositoriesConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-public class InfluxDBFieldValueCounterRepositoryTest extends AbstractFieldValueCounterRepositoryTests {
+public class InfluxDBAggregateCounterTests extends AbstractAggregateCounterTests {
 
-    @Rule
-    public InfluxDBTestSupport influxDBAvailableRule = new InfluxDBTestSupport();
 
-    @Before
-    @After
-    public void cleanUp() {
-        fieldValueCounterRepository.deleteAll();
-    }
+
+	@Rule
+	public InfluxDBTestSupport influxDBAvailableRule = new InfluxDBTestSupport();
+
+	@Before
+	@After
+	public void cleanUp() {
+		aggregateCounterRepository.deleteAll();
+	}
+
 }

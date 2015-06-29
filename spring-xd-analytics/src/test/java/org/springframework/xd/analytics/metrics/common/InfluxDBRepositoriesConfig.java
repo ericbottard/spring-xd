@@ -20,8 +20,12 @@ package org.springframework.xd.analytics.metrics.common;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.xd.analytics.metrics.core.AggregateCounterRepository;
+import org.springframework.xd.analytics.metrics.core.CounterRepository;
+import org.springframework.xd.analytics.metrics.core.FieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.core.GaugeRepository;
 import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
+import org.springframework.xd.analytics.metrics.influxdb.InfluxDBAggregateCounterRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBCounterRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBFieldValueCounterRepository;
 import org.springframework.xd.analytics.metrics.influxdb.InfluxDBGaugeRepository;
@@ -35,23 +39,29 @@ import org.springframework.xd.analytics.metrics.influxdb.InfluxDBRichGaugeReposi
 @Configuration
 public class InfluxDBRepositoriesConfig {
 
-    @Bean
-    public InfluxDBFieldValueCounterRepository influxDBFieldValueCounterRepository() {
-        return new InfluxDBFieldValueCounterRepository();
-    }
+	@Bean
+	public FieldValueCounterRepository fieldValueCounterRepository() {
+		return new InfluxDBFieldValueCounterRepository();
+	}
 
-    @Bean
-    @Qualifier("simple")
-    public InfluxDBCounterRepository influxDBCounterRepository() {
-        return new InfluxDBCounterRepository();
-    }
+	@Bean
+	@Qualifier("simple")
+	public CounterRepository counterRepository() {
+		return new InfluxDBCounterRepository();
+	}
 
-    @Bean
-    public GaugeRepository gaugeRepository() {
-        return new InfluxDBGaugeRepository();
-    }
-    @Bean
-    public RichGaugeRepository richGaugeRepository() {
-        return new InfluxDBRichGaugeRepository();
-    }
+	@Bean
+	public AggregateCounterRepository aggregateCounterRepository() {
+		return new InfluxDBAggregateCounterRepository();
+	}
+
+	@Bean
+	public GaugeRepository gaugeRepository() {
+		return new InfluxDBGaugeRepository();
+	}
+
+	@Bean
+	public RichGaugeRepository richGaugeRepository() {
+		return new InfluxDBRichGaugeRepository();
+	}
 }

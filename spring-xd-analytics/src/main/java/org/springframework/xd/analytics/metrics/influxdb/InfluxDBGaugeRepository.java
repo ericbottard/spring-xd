@@ -44,7 +44,7 @@ implements GaugeRepository {
 	}
 
 	public InfluxDBGaugeRepository( String url, String username, String password, String dbName) {
-		super("gauge", url, username, password, dbName, Arrays.asList("time", "sequence_number"));
+		super("gauge", url, username, password, dbName, Arrays.asList(TIME_COLUMN, SEQUENCE_COLUMN));
 	}
 
 	@Override
@@ -59,7 +59,7 @@ implements GaugeRepository {
 	public Gauge findOne(String name) {
 		Assert.hasText(name, "The name of the GaugeCounter must not be blank");
 
-		List<Serie> series = safeQuery("SELECT %s FROM %s LIMIT 1", VALUE_COLUMN, seriesName(name));
+		List<Serie> series = safeQuery("select %s from %s limit 1", VALUE_COLUMN, seriesName(name));
 		if (series == null) {
 			return null;
 		}

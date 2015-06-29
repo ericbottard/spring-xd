@@ -16,6 +16,10 @@ import org.springframework.xd.analytics.metrics.core.RichGaugeRepository;
 import org.springframework.xd.test.influxdb.InfluxDBTestSupport;
 
 /**
+ * Tests for rich gauge repositories based on InfluxDB.
+ *
+ * @author Eric Bottard
+ * @author Florent Biville
  */
 @ContextConfiguration(classes = InfluxDBRepositoriesConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)

@@ -51,6 +51,16 @@ import java.util.concurrent.TimeUnit;
 
 	protected final List<String> reservedColumns;
 
+	/**
+	 * A reserved InfluxDB column name, holding timestamp of the datapoints.
+	 */
+	protected final static String TIME_COLUMN = "time";
+
+	/**
+	 * A reserved InfluxDB column name, holding sequence number of the datapoints.
+	 */
+	protected final static String SEQUENCE_COLUMN = "sequence_number";
+
 	protected AbstractInfluxDBMetricRepository(String prefix, String url, String username, String password, String dbName, List<String> reservedColumns) {
 		this.prefix = prefix;
 		this.dbName = dbName;
@@ -60,7 +70,7 @@ import java.util.concurrent.TimeUnit;
 
 	@Override
 	public boolean exists(String s) {
-		return safeQuery("select time from %s limit 1", seriesName(s)) != null;
+		return safeQuery("select %s from %s limit 1", TIME_COLUMN, seriesName(s)) != null;
 	}
 
 	@Override
@@ -128,7 +138,7 @@ import java.util.concurrent.TimeUnit;
 	}
 
 	/**
-	 * Queries the database to get all series names
+	 * Queries the database to get all series names for this repository type.
 	 */
 	protected List<String> seriesNames() {
 		List<Serie> series = safeQuery("SELECT * FROM %s LIMIT 1", all());

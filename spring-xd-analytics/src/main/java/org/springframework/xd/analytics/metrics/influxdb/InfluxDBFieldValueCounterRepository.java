@@ -45,7 +45,7 @@ public class InfluxDBFieldValueCounterRepository extends AbstractInfluxDBMetricR
 
 
 	public InfluxDBFieldValueCounterRepository() {
-		super("field_value_counter", "http://localhost:8086", "root", "root", "foobar", Arrays.asList("time", "sequence_number", MARKER));
+		super("field_value_counter", "http://localhost:8086", "root", "root", "foobar", Arrays.asList(TIME_COLUMN, SEQUENCE_COLUMN, MARKER));
 	}
 
 	@Override

@@ -13,6 +13,10 @@ import org.springframework.xd.analytics.metrics.common.InfluxDBRepositoriesConfi
 import org.springframework.xd.test.influxdb.InfluxDBTestSupport;
 
 /**
+ * Tests for gauge repositories based on InfluxDB.
+ *
+ * @author Eric Bottard
+ * @author Florent Biville
  */
 @ContextConfiguration(classes = InfluxDBRepositoriesConfig.class)
 @RunWith(SpringJUnit4ClassRunner.class)
