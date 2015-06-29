@@ -29,6 +29,7 @@ import org.springframework.xd.analytics.metrics.core.Counter;
 import org.springframework.xd.analytics.metrics.core.CounterRepository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +51,7 @@ public class InfluxDBCounterRepository extends AbstractInfluxDBMetricRepository<
     }
 
     public InfluxDBCounterRepository() {
-        super("counter", "http://localhost:8086", "root", "root", "foobar");
+        super("counter", "http://localhost:8086", "root", "root", "foobar", Arrays.asList("time", "sequence_number"));
     }
 
 

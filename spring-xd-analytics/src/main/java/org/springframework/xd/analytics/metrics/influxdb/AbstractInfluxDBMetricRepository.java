@@ -48,11 +48,12 @@ import java.util.concurrent.TimeUnit;
 
 	private String prefix;
 
-	protected static final List<String> RESERVED_COLUMNS = Arrays.asList("time", "sequence_number");
+	protected final List<String> reservedColumns;
 
-	protected AbstractInfluxDBMetricRepository(String prefix, String url, String username, String password, String dbName) {
+	protected AbstractInfluxDBMetricRepository(String prefix, String url, String username, String password, String dbName, List<String> reservedColumns) {
 		this.prefix = prefix;
 		this.dbName = dbName;
+		this.reservedColumns = reservedColumns;
 		this.influxDB = InfluxDBFactory.connect(url, username, password);
 	}
 
@@ -164,11 +165,17 @@ import java.util.concurrent.TimeUnit;
 	}
 
 	protected Serie singleSerie(List<Serie> series) {
+		if (series == null) {
+			return null;
+		}
 		Assert.state(series.size() == 1, "Expected a single series result, but result had " + series.size());
 		return series.get(0);
 	}
 
 	protected Map<String, Object> singleRow(Serie serie) {
+		if (serie == null) {
+			return null;
+		}
 		List<Map<String, Object>> rows = serie.getRows();
 		Assert.state(rows.size() == 1, "Expected a single row result, but result had " + rows.size());
 		return rows.get(0);
