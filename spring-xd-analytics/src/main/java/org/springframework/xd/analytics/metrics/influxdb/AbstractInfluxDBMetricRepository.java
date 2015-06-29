@@ -28,6 +28,7 @@ import org.springframework.xd.analytics.metrics.core.MetricRepository;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -89,13 +90,8 @@ import java.util.concurrent.TimeUnit;
 
 	@Override
 	public void deleteAll() {
-		try {
-			influxDB.deleteSeries(dbName, all());
-		}
-		catch (RuntimeException e) {
-			if (!"404 page not found\n".equals(e.getMessage())) {
-				throw e;
-			}
+		for (String name : seriesNames()) {
+			influxDB.deleteSeries(dbName, name);
 		}
 	}
 
@@ -129,6 +125,21 @@ import java.util.concurrent.TimeUnit;
 	 */
 	protected String all() {
 		return "/" + prefix + "\\..*" + "/";
+	}
+
+	/**
+	 * Queries the database to get all series names
+	 */
+	protected List<String> seriesNames() {
+		List<Serie> series = safeQuery("SELECT * FROM %s LIMIT 1", all());
+		if (series == null) {
+			return Collections.emptyList();
+		}
+		List<String> names = new ArrayList<>(series.size());
+		for (Serie serie : series) {
+			names.add(serie.getName());
+		}
+		return names;
 	}
 
 	/**

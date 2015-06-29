@@ -54,6 +54,11 @@ public abstract class SharedGaugeRepositoryTests {
 		gaugeRepository.findOne(null);
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testFindOneBlankCounter() {
+		gaugeRepository.findOne("   ");
+	}
+
 	@Test
 	public void setValueAndResetWorkAsExpected() {
 		String gaugeName = "simpleGauge";
