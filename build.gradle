@@ -114,6 +114,7 @@ allprojects {
 	group = 'org.springframework.xd'
 
 	repositories {
+		mavenLocal()
 		mavenCentral()
 		maven { url 'http://repo.spring.io/milestone' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
@@ -148,7 +149,7 @@ ext {
 	sparkVersion = '1.2.1'
 	sparkScalaVersion = '2.10'
 	sqoopVersion = '1.4.5'
-	influxdbJavaVersion = '1.5'
+	influxdbJavaVersion = '2.0-SNAPSHOT'
 
 	// Also in IO
 	nettyVersion = '3.7.0.Final' // N.B. Reactor depends on Netty 4
