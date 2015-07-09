@@ -232,6 +232,12 @@ project('modules.processor.aggregator') {
     }
 }
 
+project('modules.processor.content') {
+    dependencies {
+        runtime project(":spring-xd-extension-content")
+    }
+}
+
 project('modules.processor.shell') {
 	dependencies {
 		runtime(project(":spring-xd-extension-process"))

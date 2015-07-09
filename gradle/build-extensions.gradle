@@ -271,3 +271,11 @@ project('spring-xd-extension-gpload') {
         compile "org.yaml:snakeyaml"
     }
 }
+
+project('spring-xd-extension-content') {
+    description = "Spring XD Content Extraction support"
+    dependencies {
+        compile "org.apache.tika:tika-parsers:1.9"
+        compile "org.springframework:spring-messaging"
+    }
+}
